@@ -1,30 +1,99 @@
 "use client";
 
+import { BaseSyntheticEvent, MouseEvent, useCallback, useState } from "react";
 import Image from "next/image";
 import App from "./components/App";
 import { XIcon } from "./components/icons/XIcon";
 import { LinkedInIcon } from "./components/icons/LinkedInIcon";
 import { FacebookIcon } from "./components/icons/FacebookIcon";
-import GitHubButton from "react-github-btn";
-import { useState } from "react";
-import axios from "axios";
+import { useNowPlaying } from "react-nowplaying";
 
 const Home = () => {
   const [isListening, setIsListening] = useState(false);
   const [caption, setCaption] = useState<string | undefined>(
     "Powered by Deepgram"
   );
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { stop: stopAudio, play: playAudio  } = useNowPlaying();
+  const [context, setContext] = useState<AudioContext>();
+  const callback = (ctx: AudioContext) => {setContext(ctx)}
+  const [text, setText] = useState<string>("my name is paul");
 
-  const get_response = async (caption: string | undefined) => {
-    if (caption === "Powered by Deepgram" || caption === "" || caption === undefined) {
-      return alert("Kindly make a request before asking Chat Pal")
-    } 
-    try {
-      const response = await axios.post('/api/chat', {body: caption})
-      console.log("The get response result: ", response.data)
-    } catch (error) {
-      console.error("The get response error: ", error)
-    }
+  const playAud = () => {
+    stopAudio()
+    // get your audio blob
+    playAudio("/song.mp3", "audio/wav");
+    console.log("now playing")
+  };
+
+  const sendText = useCallback(
+    async (event: BaseSyntheticEvent) => {
+      // callback(new (window.AudioContext || window.webkitAudioContext)());
+
+      stopAudio();
+
+      const model = "aura-asteria-en";
+
+      const response = await fetch(`/api/chat?model=${model}`, {
+        cache: "no-store",
+        method: "POST",
+        body: JSON.stringify({ text }),
+      });
+
+      // stopAudio();
+      setText("");
+      const response_blob = await response.blob()
+      playAudio(response_blob, "audio/mp3");
+      // console.log("the response blob: ", response_blob)
+      // const audioUrl = URL.createObjectURL(response_blob);
+      // console.log("the audio url: ", audioUrl)
+      // setAudioUrl(audioUrl);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [text],
+  );
+
+  const get_response = async () => {
+    // if (caption === "Powered by Deepgram" || caption === "" || caption === undefined) {
+    //   return alert("Kindly make a request before asking Chat Pal")
+    // } 
+    // setLoading(true);
+    // setIsListening(false);
+    // try {
+    //   const response = await fetch(`/api/chat`, {
+    //     cache: "no-store",
+    //     method: "POST",
+    //     body: JSON.stringify({caption}),
+    //   });
+
+    //   const arrayBuffer = await response.arrayBuffer();
+    //   const blob = new Blob([arrayBuffer], { type: "audio/wav" });
+    //   const audioUrl = URL.createObjectURL(blob);
+    //   setAudioUrl(audioUrl);
+
+    // } catch (error) {
+    //   console.error("The get response error: ", error)
+    // } finally {
+    //   setLoading(false);
+    // }
+      stopAudio();
+
+      const model = "aura-asteria-en";
+
+      const response = await fetch(`/api/chat?model=${model}`, {
+        cache: "no-store",
+        method: "POST",
+        body: JSON.stringify({ text }),
+      });
+
+      // stopAudio();
+      setText("");
+      const response_blob = await response.blob()
+      // playAudio(response_blob, "audio/mp3");
+      const audioUrl = URL.createObjectURL(response_blob);
+      // console.log("the audio url: ", audioUrl)
+      setAudioUrl(audioUrl);
   }
 
   return (
@@ -49,11 +118,15 @@ const Home = () => {
               <span className="mt-1">
                 <button
                   type="button"
-                  disabled={isListening === false}
+                  // disabled={isListening === false}
                   className="disabled:opacity-20 hover:opacity-75 active:opacity-20 duration-100 transition-all"
-                  onClick={() => get_response(caption)}
+                  onClick={() => get_response()}
+                  // onClick={(event: MouseEvent<HTMLButtonElement>) => {
+                  //   sendText(event);
+                  // }}
+                  // onClick={() => playAud()}
                 >
-                  Ask Chat Pal
+                  {loading ? "Generating..." : "Ask Chat Pal"}
                 </button>
               </span>
 
@@ -66,6 +139,11 @@ const Home = () => {
                   {isListening ? "Disable Speech" : "Enable Speech"}
                 </button>
               </span>
+              <div>
+                {audioUrl && (
+                  <audio id="myAudio" controls autoPlay src={audioUrl}></audio>
+                )}
+              </div>
             </div>
           </header>
         </div>

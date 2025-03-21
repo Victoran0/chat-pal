@@ -8,6 +8,7 @@ import { MicrophoneContextProvider } from "./context/MicrophoneContextProvider";
 import "./globals.css";
 
 import type { Metadata, Viewport } from "next";
+import { NowPlayingContextProvider } from "react-nowplaying";
 
 const inter = Inter({ subsets: ["latin"] });
 const favorit = localFont({
@@ -45,9 +46,13 @@ export default function RootLayout({
           inter.className
         )}`}
       >
+        <NowPlayingContextProvider>
         <MicrophoneContextProvider>
-          <DeepgramContextProvider>{children}</DeepgramContextProvider>
+          <DeepgramContextProvider>
+              {children}
+            </DeepgramContextProvider>
         </MicrophoneContextProvider>
+        </NowPlayingContextProvider>
       </body>
     </html>
   );

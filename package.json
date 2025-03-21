@@ -17,6 +17,7 @@
     "react-device-detect": "^2.2.3",
     "react-dom": "^18",
     "react-github-btn": "^1.4.0",
+    "react-nowplaying": "^1.5.1",
     "react-syntax-highlighter": "^15.5.0"
   },
   "devDependencies": {

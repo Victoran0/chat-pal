@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://aura-tts-demo.deepgram.com"),
   title: "Chat Pal",
-  description: `Have a speech to speech conversation with an AI Assistant`,
+  description: `Experience seamless, real-time speech-to-speech conversations with an AI assistant. Engage in natural dialogues, ask questions, and receive instant spoken responses, creating a truly immersive and interactive experience.`,
   robots: {
     index: false,
     follow: false,

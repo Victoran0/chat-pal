@@ -22,7 +22,7 @@ type Props = {
 // const App: React.FC<Props> = ({caption, setCaption}) => {
 const App: ({caption, setCaption}: Props) => JSX.Element = ({caption, setCaption}) => {
   const { connection, connectToDeepgram, connectionState } = useDeepgram();
-  const { setupMicrophone, microphone, startMicrophone, microphoneState } =
+  const { setupMicrophone, microphone, startMicrophone, microphoneState, stopMicrophone } =
     useMicrophone();
   const captionTimeout = useRef<any>();
   const keepAliveInterval = useRef<any>();

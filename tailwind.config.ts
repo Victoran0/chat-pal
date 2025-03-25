@@ -11,6 +11,7 @@ const config: Config = {
       animation: {
         // Bounces 5 times 1s equals 5 seconds
         "ping-short": "ping 1s ease-in-out 5",
+        gradient: "gradientBG 2s ease-in-out infinite",
       },
       screens: {
         betterhover: { raw: "(hover: hover)" },
@@ -43,6 +44,13 @@ const config: Config = {
         favorit: ["var(--font-favorit)"],
         inter: ["Inter", "Arial", "sans serif"],
       },
+      keyframes: {
+        gradientBG: {
+          "0%": { backgroundPosition: "150% 500%" },
+          "50%": { backgroundPosition: "295% 185%" },
+          "100%": { backgroundPosition: "350% 500%" },
+        },
+      }
     },
   },
 };

@@ -6,6 +6,7 @@ import { DeepgramContextProvider } from "./context/DeepgramContextProvider";
 import { MicrophoneContextProvider } from "./context/MicrophoneContextProvider";
 
 import "./globals.css";
+import "./button.css";
 
 import type { Metadata, Viewport } from "next";
 import { NowPlayingContextProvider } from "react-nowplaying";

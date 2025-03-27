@@ -7,7 +7,7 @@ import { XIcon } from "./components/icons/XIcon";
 import { LinkedInIcon } from "./components/icons/LinkedInIcon";
 import { FacebookIcon } from "./components/icons/FacebookIcon";
 import { useNowPlaying } from "react-nowplaying";
-import {AnimatePresence, motion} from 'motion/react'
+import {AnimatePresence} from 'motion/react'
 import GitHubButton from "react-github-btn";
 import TapToSpeak from "./components/TapToSpeak";
 import LoadingThreeDotsJumping from "./components/Loading";

@@ -1,6 +1,6 @@
 "use client";
 
-import { BaseSyntheticEvent, MouseEvent, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import App from "./components/App";
 import { XIcon } from "./components/icons/XIcon";

@@ -17,15 +17,24 @@ import Visualizer from "./Visualizer";
 type Props = {
   caption: string | undefined;
   setCaption: React.Dispatch<React.SetStateAction<string | undefined>>;
+  isListening: boolean;
+  getResponse: boolean;
+  setGetResponse: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 // const App: React.FC<Props> = ({caption, setCaption}) => {
-const App: ({caption, setCaption}: Props) => JSX.Element = ({caption, setCaption}) => {
+const App: ({caption, setCaption}: Props) => JSX.Element = ({caption, setCaption, isListening, getResponse, setGetResponse}) => {
   const { connection, connectToDeepgram, connectionState } = useDeepgram();
   const { setupMicrophone, microphone, startMicrophone, microphoneState, stopMicrophone } =
     useMicrophone();
   const captionTimeout = useRef<any>();
   const keepAliveInterval = useRef<any>();
+
+  useEffect(() => {
+    if (!isListening) {
+      stopMicrophone();
+    }
+  }, [isListening])
 
   useEffect(() => {
     setupMicrophone();
@@ -70,7 +79,8 @@ const App: ({caption, setCaption}: Props) => JSX.Element = ({caption, setCaption
       if (isFinal && speechFinal) {
         clearTimeout(captionTimeout.current);
         captionTimeout.current = setTimeout(() => {
-          setCaption(undefined);
+          setGetResponse(!getResponse);
+          setTimeout(() => setCaption(undefined), 3000);
           clearTimeout(captionTimeout.current);
         }, 3000);
       }

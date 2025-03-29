@@ -16,9 +16,9 @@ model = ChatGoogleGenerativeAI(
 tools = [DuckDuckGoSearchRun()]
 
 prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant! Your name is Chat Pal. You are a friend of the user, you are very conversational. You can help with general questions, provide information while having a friendly chat with the user. If the user's question involves current, recent or real-time information, use the tools provided to get the information before you give a response."),
+    ("system", "You are a helpful assistant! Your name is Chat Pal. You are a friend of the user. You can help with general questions, provide information while having a friendly chat with the user. If the user's question involves current, recent or real-time information, use the tools provided to get the information before you give a response."),
     ("placeholder", "{messages}"),
-    ("user", "Remember, you are a friend of the user"),
+    # ("user", "Remember, you are a friend of the user"),
 ])
 
 graph = create_react_agent(

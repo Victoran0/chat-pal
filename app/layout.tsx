@@ -10,6 +10,7 @@ import "./button.css";
 
 import type { Metadata, Viewport } from "next";
 import { NowPlayingContextProvider } from "react-nowplaying";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 const favorit = localFont({
@@ -50,7 +51,10 @@ export default function RootLayout({
         <NowPlayingContextProvider>
         <MicrophoneContextProvider>
           <DeepgramContextProvider>
+            <main>
               {children}
+            </main>
+              <Toaster />
             </DeepgramContextProvider>
         </MicrophoneContextProvider>
         </NowPlayingContextProvider>

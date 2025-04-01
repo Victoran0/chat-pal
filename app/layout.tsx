@@ -51,9 +51,7 @@ export default function RootLayout({
         <NowPlayingContextProvider>
         <MicrophoneContextProvider>
           <DeepgramContextProvider>
-            <main>
               {children}
-            </main>
               <Toaster />
             </DeepgramContextProvider>
         </MicrophoneContextProvider>

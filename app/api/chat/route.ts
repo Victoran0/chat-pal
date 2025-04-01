@@ -13,16 +13,23 @@ export const revalidate = 0;
 export async function POST(request: NextRequest) {
   const {caption} = await request.json();
   console.log("user;s request: ", caption)
+  let text = ""
+
   try {
     const res = await axios.post(`${process.env.BASE_URL}/chat/`, 
         {body: caption}
     )
-    const text = await res.data.agent_response
+    text = await res.data.agent_response
     console.log("The backend response: ", text)
     // return new Response("got it", {status: 200})
+  } catch (error: any) {
+    console.error("The backend error: ", error)
+    return new Response(JSON.stringify(error), {status: error?.response?.status})
+  }
 
+  try {
     // gotta use the request object to invalidate the cache every request :vomit:
-    const url = request.url;
+    // const url = request.url;
     const deepgram = createClient(process.env.DEEPGRAM_API_KEY ?? "");
 
     const model = request.nextUrl.searchParams.get("model") ?? "aura-asteria-en";
@@ -43,9 +50,9 @@ export async function POST(request: NextRequest) {
     response.headers.set("Expires", "0");
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
       console.error("The backend error: ", error)
-      return new Response(JSON.stringify(error), {status: 400})
+      return new Response(JSON.stringify(error), {status: error?.response?.status})
   }
 
 }

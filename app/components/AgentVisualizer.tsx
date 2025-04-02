@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type AudioInput = MediaStream | HTMLAudioElement;
 
@@ -18,38 +18,39 @@ const interpolateColor = (
 };
 
 interface VisualizerProps {
-  source: AudioInput;
+  audioUrl: string;
+  setGetResponse: React.Dispatch<React.SetStateAction<boolean>>;
   context?: AudioContext;
 }
 
-const AgentVisualizer: React.FC<VisualizerProps> = ({ source, context }) => {
+const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, setGetResponse, context }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
+  const audioElmRef = useRef<HTMLAudioElement | null>(null);
   if (!context) {
     context = new (window.AudioContext || window.webkitAudioContext)();
   }
-
   const analyser = context.createAnalyser();
   const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
   useEffect(() => {
     let audioSource: AudioNode;
 
-    if (source instanceof MediaStream) {
-      audioSource = context!.createMediaStreamSource(source);
+    if (audioElmRef.current instanceof MediaStream) {
+      audioSource = context!.createMediaStreamSource(audioElmRef.current);
     } else {
-      audioSource = context!.createMediaElementSource(source);
+      audioSource = context!.createMediaElementSource(audioElmRef.current as HTMLAudioElement);
       audioSource.connect(context!.destination);
     }
-
+    
     audioSource.connect(analyser);
     draw();
 
-    return () => {
+    audioElmRef.current?.addEventListener("ended", (event: Event) => {
+      setGetResponse(false);
       audioSource.disconnect();
-    };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source]);
+  }, [audioUrl]);
 
   const draw = (): void => {
     const canvas = canvasRef.current;
@@ -87,7 +88,12 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ source, context }) => {
     }
   };
 
-  return <canvas ref={canvasRef} width={window.innerWidth}></canvas>;
+  return (
+      <>
+        <canvas ref={canvasRef} width={window.innerWidth}></canvas>
+        {audioUrl && <audio src={audioUrl ?? ""} ref={audioElmRef} className="w-0" autoPlay />}
+      </>
+    )
 };
 
 export default AgentVisualizer;

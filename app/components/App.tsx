@@ -14,6 +14,7 @@ const App = () => {
     const [getResponse, setGetResponse] = useState(false);
     const { player } = useNowPlaying();
     const [context, setContext] = useState<AudioContext>();
+    const [audioUrl, setAudioUrl] = useState<string>("");
 
     return (
         <>
@@ -27,6 +28,7 @@ const App = () => {
                     callback={(ctx: AudioContext) => {setContext(ctx);}} 
                     setIsLoading={setIsLoading} 
                     setIsListening={setIsListening} 
+                    setAudioUrl={setAudioUrl}
                 />
             )}
             <AnimatePresence>
@@ -35,7 +37,7 @@ const App = () => {
             )}
             </AnimatePresence>
             {((context && player) && !isLoading ) && (
-                <AgentVisualizer source={player} context={context} />
+                <AgentVisualizer audioUrl={audioUrl} setGetResponse={setGetResponse} />
             )}
             <AnimatePresence>
             {(getResponse && isLoading) && (

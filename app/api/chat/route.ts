@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     // return new Response("got it", {status: 200})
   } catch (error: any) {
     console.error("The backend error: ", error)
-    return new Response(JSON.stringify(error), {status: error?.response?.status})
+    return new Response(JSON.stringify(error?.response), {status: error?.response?.status})
   }
 
   try {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error: any) {
       console.error("The backend error: ", error)
-      return new Response(JSON.stringify(error), {status: error?.response?.status})
+      return new Response(JSON.stringify(error?.response), {status: error?.response?.status})
   }
 
 }

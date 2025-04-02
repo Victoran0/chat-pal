@@ -25,23 +25,24 @@ type Props = {
   callback: React.Dispatch<React.SetStateAction<any>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setIsListening: React.Dispatch<React.SetStateAction<boolean>>;
+  setAudioUrl: React.Dispatch<React.SetStateAction<string>>;
 };
 
 // const App: React.FC<Props> = ({caption, setCaption}) => {
-const SpeechToText: ({caption, setCaption}: Props) => JSX.Element = ({caption, setCaption, isListening, getResponse, setGetResponse, callback, setIsLoading, setIsListening}) => {
+const SpeechToText: ({}: Props) => JSX.Element = ({caption, setCaption, isListening, getResponse, setGetResponse, callback, setIsLoading, setIsListening, setAudioUrl}) => {
   const { connection, connectToDeepgram, connectionState } = useDeepgram();
-  const { setupMicrophone, microphone, startMicrophone, microphoneState, stopMicrophone } =
+  const { setupMicrophone, microphone, startMicrophone, microphoneState } =
     useMicrophone();
   const captionTimeout = useRef<any>();
   const keepAliveInterval = useRef<any>();
   const { toast } = useToast();
   const { stop: stopAudio, play: playAudio, player } = useNowPlaying();
 
-  useEffect(() => {
-    if (!isListening) {
-      stopMicrophone();
-    }
-  }, [isListening])
+  // useEffect(() => {
+  //   if (!isListening) {
+  //     stopMicrophone();
+  //   }
+  // }, [isListening])
 
   useEffect(() => {
     setupMicrophone();
@@ -162,11 +163,13 @@ const SpeechToText: ({caption, setCaption}: Props) => JSX.Element = ({caption, s
       setIsLoading(false);
       setCaption("");
       
-      playAudio(response_blob, "audio/mp3");
-      player?.addEventListener("ended", (event: Event) => {
-          console.log("Audio has finished playing");
-          setGetResponse(false);
-          });
+      // playAudio(response_blob, "audio/mp3");
+      // player?.addEventListener("ended", (event: Event) => {
+      //     console.log("Audio has finished playing");
+      //     setGetResponse(false);
+      // });
+      setAudioUrl(URL.createObjectURL(response_blob));
+      
       } catch (error: any) {
           console.error("The get response error: ", error)
       toast({

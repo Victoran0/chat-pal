@@ -1,4 +1,6 @@
+"use client"
 import React, { useEffect, useRef } from "react";
+import { useChatPalStore } from "@/providers/chatpal-store-provider";
 
 const interpolateColor = (
   startColor: number[],
@@ -19,8 +21,11 @@ const Visualizer = ({ microphone }: { microphone: MediaRecorder }) => {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const analyser = audioContext.createAnalyser();
   const dataArray = new Uint8Array(analyser.frequencyBinCount);
+  const {visualizeHuman, isListening} = useChatPalStore((state) => state);
+  
 
   useEffect(() => {
+    console.log("I was rendered")
     const source = audioContext.createMediaStreamSource(microphone.stream);
     source.connect(analyser);
 

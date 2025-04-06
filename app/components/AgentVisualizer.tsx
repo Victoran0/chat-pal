@@ -1,4 +1,5 @@
 "use client"
+import { useChatPalStore } from "@/providers/chatpal-store-provider";
 import React, { useEffect, useRef, useState } from "react";
 
 type AudioInput = MediaStream | HTMLAudioElement;
@@ -19,11 +20,11 @@ const interpolateColor = (
 
 interface VisualizerProps {
   audioUrl: string;
-  setGetResponse: React.Dispatch<React.SetStateAction<boolean>>;
   context?: AudioContext;
 }
 
-const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, setGetResponse, context }) => {
+const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
+  const {toggleBoolean, setRefreshSTTCount} = useChatPalStore((state) => state);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioElmRef = useRef<HTMLAudioElement | null>(null);
   if (!context) {
@@ -33,12 +34,14 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, setGetResponse, 
   const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
   useEffect(() => {
+    // console.log("The context is: ", context);
+    if (!audioUrl) return;
     let audioSource: AudioNode;
 
     if (audioElmRef.current instanceof MediaStream) {
       audioSource = context!.createMediaStreamSource(audioElmRef.current);
     } else {
-      audioSource = context!.createMediaElementSource(audioElmRef.current as HTMLAudioElement);
+      audioSource = context!.createMediaElementSource(audioElmRef.current as HTMLMediaElement);
       audioSource.connect(context!.destination);
     }
     
@@ -46,7 +49,8 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, setGetResponse, 
     draw();
 
     audioElmRef.current?.addEventListener("ended", (event: Event) => {
-      setGetResponse(false);
+      setRefreshSTTCount();
+      toggleBoolean("getResponse", false);
       audioSource.disconnect();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

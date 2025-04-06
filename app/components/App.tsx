@@ -1,48 +1,37 @@
 "use client"
 import { AnimatePresence } from 'motion/react';
 import React, { useState } from 'react'
-import { useNowPlaying } from 'react-nowplaying';
 import AgentVisualizer from './AgentVisualizer';
 import LoadingThreeDotsJumping from './Loading';
 import TapToSpeak from './TapToSpeak';
 import SpeechToText from './SpeechToText';
+import { useChatPalStore } from '@/providers/chatpal-store-provider';
 
 const App = () => {
-    const [isListening, setIsListening] = useState(false);
-    const [caption, setCaption] = useState<string | undefined>("");
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [getResponse, setGetResponse] = useState(false);
-    const { player } = useNowPlaying();
     const [context, setContext] = useState<AudioContext>();
     const [audioUrl, setAudioUrl] = useState<string>("");
+    const { isListening, getResponse, isLoading, refreshSTTCount } = useChatPalStore((state) => state,)
 
     return (
         <>
             {isListening && (
                 <SpeechToText 
-                    caption={caption}
-                    setCaption={setCaption} 
-                    isListening={isListening} 
-                    getResponse={getResponse} 
-                    setGetResponse={setGetResponse} 
                     callback={(ctx: AudioContext) => {setContext(ctx);}} 
-                    setIsLoading={setIsLoading} 
-                    setIsListening={setIsListening} 
                     setAudioUrl={setAudioUrl}
                 />
             )}
-            <AnimatePresence>
-            {(!isListening && !getResponse) && (
-                <TapToSpeak isListening={isListening} setIsListening={setIsListening} />
+            {context && !isLoading && (
+                <AgentVisualizer audioUrl={audioUrl} />
             )}
+            <AnimatePresence>
+                {!isListening && !getResponse && (
+                    <TapToSpeak />
+                )}
             </AnimatePresence>
-            {((context && player) && !isLoading ) && (
-                <AgentVisualizer audioUrl={audioUrl} setGetResponse={setGetResponse} />
-            )}
             <AnimatePresence>
-            {(getResponse && isLoading) && (
-                <LoadingThreeDotsJumping />
-            )}
+                {(getResponse && isLoading) && (
+                    <LoadingThreeDotsJumping />
+                )}
             </AnimatePresence>
         </>
     )

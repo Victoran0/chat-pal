@@ -50,3 +50,6 @@ next-env.d.ts
 
 # others
 song.mp3
+
+# test route
+test

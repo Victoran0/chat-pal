@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  LiveConnectionState,
   LiveTranscriptionEvent,
   LiveTranscriptionEvents,
   useDeepgram,
@@ -13,38 +12,27 @@ import {
   useMicrophone,
 } from "../context/MicrophoneContextProvider";
 import Visualizer from "./Visualizer";
-import { useNowPlaying } from "react-nowplaying";
 import { useToast } from "@/hooks/use-toast";
+import { useChatPalStore } from "@/providers/chatpal-store-provider";
+import { list } from "postcss";
 
 type Props = {
-  caption: string | undefined;
-  setCaption: React.Dispatch<React.SetStateAction<string | undefined>>;
-  isListening: boolean;
-  getResponse: boolean;
-  setGetResponse: React.Dispatch<React.SetStateAction<boolean>>;
   callback: React.Dispatch<React.SetStateAction<any>>;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsListening: React.Dispatch<React.SetStateAction<boolean>>;
   setAudioUrl: React.Dispatch<React.SetStateAction<string>>;
 };
 
 // const App: React.FC<Props> = ({caption, setCaption}) => {
-const SpeechToText: ({}: Props) => JSX.Element = ({caption, setCaption, isListening, getResponse, setGetResponse, callback, setIsLoading, setIsListening, setAudioUrl}) => {
+const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => {
   const { connection, connectToDeepgram, connectionState } = useDeepgram();
-  const { setupMicrophone, microphone, startMicrophone, microphoneState } =
-    useMicrophone();
+  const { setupMicrophone, microphone, startMicrophone, microphoneState } = useMicrophone();
   const captionTimeout = useRef<any>();
   const keepAliveInterval = useRef<any>();
   const { toast } = useToast();
-  const { stop: stopAudio, play: playAudio, player } = useNowPlaying();
-
-  // useEffect(() => {
-  //   if (!isListening) {
-  //     stopMicrophone();
-  //   }
-  // }, [isListening])
+  const [caption, setCaption] = useState<string>();
+  const {toggleBoolean, getResponse, setRefreshSTTCount} = useChatPalStore((state) => state,)
 
   useEffect(() => {
+    // The same value that renders the component
     setupMicrophone();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -57,8 +45,9 @@ const SpeechToText: ({}: Props) => JSX.Element = ({caption, setCaption, isListen
         smart_format: true,
         filler_words: true,
         utterance_end_ms: 3000,
-      });
+      })
     }
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [microphoneState]);
 
@@ -77,7 +66,8 @@ const SpeechToText: ({}: Props) => JSX.Element = ({caption, setCaption, isListen
     const onTranscript = (data: LiveTranscriptionEvent) => {
       const { is_final: isFinal, speech_final: speechFinal } = data;
       let thisCaption = data.channel.alternatives[0].transcript;
-
+      
+      toggleBoolean("visualizeHuman", true)
       console.log("thisCaption: ", thisCaption);
       if (thisCaption !== "") {
         console.log('thisCaption !== ""', thisCaption);
@@ -87,25 +77,27 @@ const SpeechToText: ({}: Props) => JSX.Element = ({caption, setCaption, isListen
       if (isFinal && speechFinal) {
         clearTimeout(captionTimeout.current);
         captionTimeout.current = setTimeout(() => {
-          setGetResponse(!getResponse);
-          setTimeout(() => setCaption(undefined), 3000);
+          toggleBoolean("getResponse", true)
+          setTimeout(() => setCaption(undefined), 1000);
           clearTimeout(captionTimeout.current);
         }, 3000);
       }
     };
 
-    if (connectionState === LiveConnectionState.OPEN) {
+    if (connectionState === 'OPEN') {
       connection.addListener(LiveTranscriptionEvents.Transcript, onTranscript);
       microphone.addEventListener(MicrophoneEvents.DataAvailable, onData);
 
       startMicrophone();
+      console.log("Connected to Deepgram");
     }
 
     return () => {
       // prettier-ignore
-      connection.removeListener(LiveTranscriptionEvents.Transcript, onTranscript);
-      microphone.removeEventListener(MicrophoneEvents.DataAvailable, onData);
-      clearTimeout(captionTimeout.current);
+      console.log("Disconnected from Deepgram");
+      // connection.removeListener(LiveTranscriptionEvents.Transcript, onTranscript);
+      // microphone.removeEventListener(MicrophoneEvents.DataAvailable, onData);
+      // clearTimeout(captionTimeout.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionState]);
@@ -115,7 +107,7 @@ const SpeechToText: ({}: Props) => JSX.Element = ({caption, setCaption, isListen
 
     if (
       microphoneState !== MicrophoneState.Open &&
-      connectionState === LiveConnectionState.OPEN
+      connectionState === "OPEN"
     ) {
       connection.keepAlive();
 
@@ -138,57 +130,66 @@ const SpeechToText: ({}: Props) => JSX.Element = ({caption, setCaption, isListen
       callback(new (window.AudioContext || window.webkitAudioContext)());
       
       if (!caption || caption === "") {
-      setGetResponse(false);
-      return toast({
-          variant: 'destructive',
-          description: "Uh oh! Kindly make a request",
-      })
+        setRefreshSTTCount()
+        toggleBoolean("getResponse", false)
+        toggleBoolean("visualizeHuman", false)
+        toggleBoolean("isListening", false)
+        return toast({
+            variant: 'destructive',
+            description: "Uh oh! Kindly make a request",
+        })
       } 
-      setIsListening(false)
-      setIsLoading(true);
-      stopAudio();
+      toggleBoolean("isListening", false)
+      toggleBoolean("isLoading", true)
       
       try {
-      const model = "aura-asteria-en";
+        const model = "aura-asteria-en";
 
-      const response = await fetch(`/api/chat?model=${model}`, {
-          cache: "no-store",
-          method: "POST",
-          body: JSON.stringify({ caption }),
-      });
+        const response = await fetch(`/api/chat?model=${model}`, {
+            cache: "no-store",
+            method: "POST",
+            body: JSON.stringify({ caption }),
+        });
+        console.log("The response: ", response)
 
-      stopAudio();
-      const response_blob = await response.blob()
+        if (!response.ok) {
+          setRefreshSTTCount()
+          console.error("Network response was not ok");
+          toggleBoolean("isLoading", false);
+          toggleBoolean("visualizeHuman", false);
+          toggleBoolean("getResponse", false);
+          setCaption("");
+          return toast({
+            variant: 'destructive',
+            title: `Uh oh! Something went wrong. Error ${response?.status}`,
+            description: `${response?.statusText}`,
+          })
+        }
 
-      setIsLoading(false);
-      setCaption("");
-      
-      // playAudio(response_blob, "audio/mp3");
-      // player?.addEventListener("ended", (event: Event) => {
-      //     console.log("Audio has finished playing");
-      //     setGetResponse(false);
-      // });
-      setAudioUrl(URL.createObjectURL(response_blob));
+        const response_blob = await response.blob()
+
+        toggleBoolean("isLoading", false);
+        setAudioUrl(URL.createObjectURL(response_blob));
       
       } catch (error: any) {
-          console.error("The get response error: ", error)
-      toast({
-          variant: 'destructive',
-          title: `Uh oh! Something went wrong. Error ${error?.response?.status}`,
-          description: `${error?.response?.data}`,
-      })
+        console.error("The get response error: ", error)
+        toast({
+            variant: 'destructive',
+            title: `Uh oh! Something went wrong. Error ${error?.response?.status}`,
+            description: `${error?.response?.data}`,
+        })
       } finally {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [caption],
-    );
+  );
 
     useEffect(() => {
       if (getResponse) {
         sendText();
       }
-    }, [getResponse])
+    }, [ getResponse ]);
 
 
   return (

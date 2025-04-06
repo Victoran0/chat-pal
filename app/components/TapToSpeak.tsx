@@ -1,16 +1,13 @@
-import { AnimatePresence, motion } from 'motion/react'
 import React from 'react'
+import { motion } from 'motion/react'
+import { useChatPalStore } from '@/providers/chatpal-store-provider'
 
-type Props = {
-    isListening: boolean;
-    setIsListening: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const TapToSpeak: React.FC<Props> = ({ isListening, setIsListening }) => {
+const TapToSpeak: React.FC = () => {
+    const {toggleBoolean} = useChatPalStore((state) => state,)
     return (
         <motion.button 
             className="ease-in-out duration-500 hover:cursor-pointer text-[120px] absolute"  
-            onClick={() => setIsListening(!isListening)}
+            onClick={() => toggleBoolean("isListening", true)}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}

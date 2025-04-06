@@ -9,8 +9,9 @@ import "./globals.css";
 import "./button.css";
 
 import type { Metadata, Viewport } from "next";
-import { NowPlayingContextProvider } from "react-nowplaying";
 import { Toaster } from "@/components/ui/toaster";
+
+import { ChatPalStoreProvider } from "@/providers/chatpal-store-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 const favorit = localFont({
@@ -48,14 +49,14 @@ export default function RootLayout({
           inter.className
         )}`}
       >
-        <NowPlayingContextProvider>
         <MicrophoneContextProvider>
           <DeepgramContextProvider>
+            <ChatPalStoreProvider>
               {children}
+            </ChatPalStoreProvider>
               <Toaster />
             </DeepgramContextProvider>
         </MicrophoneContextProvider>
-        </NowPlayingContextProvider>
       </body>
     </html>
   );

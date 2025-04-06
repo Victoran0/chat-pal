@@ -5,9 +5,10 @@ import { LinkedInIcon } from "./components/icons/LinkedInIcon";
 import { FacebookIcon } from "./components/icons/FacebookIcon";
 import GitHubButton from "react-github-btn";
 import App from "./components/App";
+import { useChatPalStore } from "@/providers/chatpal-store-provider";
 
 const Home = () => {
-
+  const { refreshSTTCount } = useChatPalStore((state) => state,)
 
 
   return (
@@ -43,7 +44,7 @@ const Home = () => {
 
         {/* height 100% minus 8rem */}
         <main className="mx-auto px-4 md:px-6 lg:px-8 h-[calc(100%-4rem)] -mb-[4rem] flex justify-center items-center">
-          <App />
+          <App key={`app-${refreshSTTCount}`} />
         </main>
 
         {/* height 4rem */}

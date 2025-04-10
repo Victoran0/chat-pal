@@ -1,6 +1,8 @@
 import axios from "axios";
 import { createClient } from "@deepgram/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { graph, prompt } from "./agent";
+import { HumanMessage } from "@langchain/core/messages";
 
 export const revalidate = 0;
 
@@ -16,14 +18,18 @@ export async function POST(request: NextRequest) {
   let text = ""
 
   try {
-    const res = await axios.post(`${process.env.BASE_URL}/chat/`, 
-        {body: caption}
-    )
-    text = await res.data.agent_response
-    console.log("The backend response: ", text)
+    const agentFinalState = await graph.invoke(
+      { messages: [new HumanMessage(caption)] },
+      { configurable: { thread_id: "conversation-42" } },
+    );
+    console.log(
+      agentFinalState.messages,
+    );
+    text = agentFinalState.messages[agentFinalState.messages.length - 1].content.toString()
+    console.log("The AI AGENT response: ", text)
     // return new Response("got it", {status: 200})
   } catch (error: any) {
-    console.error("The backend error: ", error)
+    console.error("The AI AGENT error: ", error)
     return new Response(JSON.stringify(error?.response), {status: 500})
   }
 

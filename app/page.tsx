@@ -55,7 +55,7 @@ const Home = () => {
               href="#"
               onClick={(e) => {
                 window.open(
-                  "https://twitter.com/intent/tweet?text=%F0%9F%94%A5%F0%9F%8E%89%20Check%20out%20this%20awesome%20%23AI%20demo%20by%20%40Deepgram%20and%20%40lukeocodes%0A%0A%20https%3A//github.com/Victoran0/chat-pal",
+                  "https://twitter.com/intent/tweet?text=%F0%9F%94%A5%F0%9F%8E%89%20Check%20out%20this%20awesome%20%23AI%20Friend%20by%20%40Victorano_%0A%0A%20https%3A//chat-pal-rano.vercel.app",
                   "",
                   "_blank, width=600, height=500, resizable=yes, scrollbars=yes"
                 );
@@ -72,7 +72,7 @@ const Home = () => {
               href="#"
               onClick={(e) => {
                 window.open(
-                  "https://www.linkedin.com/shareArticle?mini=true&url=https%3A//github.com/Victoran0/chat-pal review on my website reviews",
+                  "https://www.linkedin.com/shareArticle?mini=true&url=https%3A//chat-pal-rano.vercel.app",
                   "",
                   "_blank, width=600, height=500, resizable=yes, scrollbars=yes"
                 );
@@ -87,7 +87,7 @@ const Home = () => {
               href="#"
               onClick={(e) => {
                 window.open(
-                  "https://www.facebook.com/sharer/sharer.php?u=https%3A//github.com/Victoran0/chat-pal",
+                  "https://www.facebook.com/sharer/sharer.php?u=https%3A//chat-pal-rano.vercel.app",
                   "",
                   "_blank, width=600, height=500, resizable=yes, scrollbars=yes"
                 );
@@ -107,7 +107,7 @@ const Home = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Built by: Victor Oluwadare
+              Built by: Victorano
             </a>
           </footer>
         </div>

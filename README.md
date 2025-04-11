@@ -1,6 +1,6 @@
 # Chat Pal
 
-The purpose of this demo is to showcase how you can build a NextJS + django + langgraph speech to speech AI Assistant using [Deepgram](https://deepgram.com/).
+The purpose of this demo is to showcase how you can build a NextJS + langchain + langgraph speech to speech AI Assistant using [Deepgram](https://deepgram.com/).
 
 ## Demo features
 
@@ -10,7 +10,7 @@ Convert text to speech [Deepgram Streaming Text to Speech](https://developers.de
 ## What is Chat Pal?
 
 Chat Pal: Enjoy fluid, voice-driven conversations with an AI companion. Ask questions, explore topics, and receive spoken answers in real-time, creating a dynamic and engaging conversational experience.  
-This speech-to-speech AI assistant offers a user-friendly way to interact with AI, making information and assistance accessible through simple voice commands.
+This speech-to-speech AI assistant offers a user-friendly way to interact with AI enhanced with the Langgraph MemorySaver, making information and assistance accessible through simple voice commands.
 
 ## Quickstart
 
@@ -36,9 +36,12 @@ Copy the code from `sample.env.local` and create a new file called `.env.local`.
 
 ```bash
 DEEPGRAM_API_KEY=YOUR-DG-API-KEY
+GROQ_API_KEY=YOUR-GROQ-API-KEY
 ```
 
 For `DEEPGRAM_API_KEY` paste in the key you generated in the [Deepgram console](https://console.deepgram.com/).
+
+For `GROQ_API_KEY` paste in the key you generated in the [Groq console](https://console.groq.com/).
 
 #### Run the application
 

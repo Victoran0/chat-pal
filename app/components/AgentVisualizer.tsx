@@ -24,7 +24,7 @@ interface VisualizerProps {
 }
 
 const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
-  const {toggleBoolean, setRefreshSTTCount} = useChatPalStore((state) => state);
+  const {toggleBoolean, setRefreshSTTCount, hasUserInteracted} = useChatPalStore((state) => state);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioElmRef = useRef<HTMLAudioElement | null>(null);
   if (!context) {
@@ -102,7 +102,7 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
   return (
       <>
         <canvas ref={canvasRef} width={window.innerWidth}></canvas>
-        {audioUrl && <audio src={audioUrl ?? ""} ref={audioElmRef} className="w-0" autoPlay />}
+        {audioUrl && <audio src={audioUrl ?? ""} ref={audioElmRef} className="w-0" autoPlay={hasUserInteracted} />}
       </>
     )
 };

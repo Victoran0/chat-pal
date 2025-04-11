@@ -6,6 +6,7 @@ export type ChatPalState = {
   isLoading: boolean;
   visualizeHuman: boolean;
   refreshSTTCount: number;
+  hasUserInteracted: boolean;
 }
 
 export type ChatPalActions = {
@@ -22,6 +23,7 @@ export const initChatPalStore = (): ChatPalState => {
     isLoading: false,
     visualizeHuman: false,
     refreshSTTCount: 0,
+    hasUserInteracted: false,
    }
 }
 
@@ -31,6 +33,7 @@ export const defaultInitState: ChatPalState = {
   isLoading: false,
   visualizeHuman: false,
   refreshSTTCount: 0,
+  hasUserInteracted: false,
 }
 
 export const createChatPalStore = (

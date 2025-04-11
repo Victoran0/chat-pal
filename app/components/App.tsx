@@ -18,10 +18,14 @@ const App = () => {
                 <SpeechToText 
                     callback={(ctx: AudioContext) => {setContext(ctx);}} 
                     setAudioUrl={setAudioUrl}
+                    key={`speech-to-text-${refreshSTTCount}`}
                 />
             )}
             {context && !isLoading && (
-                <AgentVisualizer audioUrl={audioUrl} />
+                <AgentVisualizer 
+                    audioUrl={audioUrl} 
+                    key={`agent-visualizer-${refreshSTTCount}`}
+                />
             )}
             <AnimatePresence>
                 {!isListening && !getResponse && (

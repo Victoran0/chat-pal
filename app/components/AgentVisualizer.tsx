@@ -48,11 +48,18 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
     audioSource.connect(analyser);
     draw();
 
-    audioElmRef.current?.addEventListener("ended", (event: Event) => {
-      setRefreshSTTCount();
+    const handleEnded = () => {
       toggleBoolean("getResponse", false);
       audioSource.disconnect();
-    });
+      setRefreshSTTCount();
+      console.log("Audio has stopped playing")
+    }
+
+    audioElmRef.current?.addEventListener("ended", handleEnded);
+    
+    return () => {
+      audioElmRef.current?.removeEventListener("ended", handleEnded)
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioUrl]);
 

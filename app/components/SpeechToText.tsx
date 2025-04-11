@@ -95,9 +95,9 @@ const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => 
     return () => {
       // prettier-ignore
       console.log("Disconnected from Deepgram");
-      // connection.removeListener(LiveTranscriptionEvents.Transcript, onTranscript);
-      // microphone.removeEventListener(MicrophoneEvents.DataAvailable, onData);
-      // clearTimeout(captionTimeout.current);
+      connection.removeListener(LiveTranscriptionEvents.Transcript, onTranscript);
+      microphone.removeEventListener(MicrophoneEvents.DataAvailable, onData);
+      clearTimeout(captionTimeout.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionState]);
@@ -134,6 +134,7 @@ const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => 
         toggleBoolean("getResponse", false)
         toggleBoolean("visualizeHuman", false)
         toggleBoolean("isListening", false)
+        setRefreshSTTCount();
         return toast({
             variant: 'destructive',
             description: "Uh oh! Kindly make a request",
@@ -159,6 +160,7 @@ const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => 
           toggleBoolean("visualizeHuman", false);
           toggleBoolean("getResponse", false);
           setCaption("");
+          setRefreshSTTCount();
           return toast({
             variant: 'destructive',
             title: `Uh oh! Something went wrong. Error ${response?.status}`,

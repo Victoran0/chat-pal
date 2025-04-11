@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       agentFinalState.messages,
     );
     text = agentFinalState.messages[agentFinalState.messages.length - 1].content.toString()
-    console.log("The AI AGENT response: ", text)
+    // console.log("The AI AGENT response: ", text)
 
   } catch (error: any) {
     console.error("The AI AGENT error: ", error)
@@ -40,9 +40,8 @@ export async function POST(request: NextRequest) {
     const deepgram = createClient(process.env.DEEPGRAM_API_KEY ?? "");
 
     const model = request.nextUrl.searchParams.get("model") ?? "aura-asteria-en";
-    console.log("the text: ", text)
 
-    console.log(model, text);
+    console.log("model: ", model, "\nThe AI AGENT response: ", text);
 
     const result = await deepgram.speak.request({text: text}, { model });
     const stream = await result.getStream();

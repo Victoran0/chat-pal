@@ -27,43 +27,71 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
   const {toggleBoolean, setRefreshSTTCount, hasUserInteracted} = useChatPalStore((state) => state);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioElmRef = useRef<HTMLAudioElement | null>(null);
-  if (!context) {
-    context = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  const analyser = context.createAnalyser();
-  const dataArray = new Uint8Array(analyser.frequencyBinCount);
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(context || null);
+  // Initialize or get audio context
+  const getAudioContext = () => {
+    if (!audioContext) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      setAudioContext(ctx);
+      return ctx;
+    }
+    return audioContext;
+  };
 
   useEffect(() => {
-    // console.log("The context is: ", context);
-    if (!audioUrl) return;
-    let audioSource: AudioNode;
-
-    if (audioElmRef.current instanceof MediaStream) {
-      audioSource = context!.createMediaStreamSource(audioElmRef.current);
-    } else {
-      audioSource = context!.createMediaElementSource(audioElmRef.current as HTMLMediaElement);
-      audioSource.connect(context!.destination);
-    }
+    if (!audioUrl || !hasUserInteracted) return;
     
-    audioSource.connect(analyser);
-    draw();
+    const ctx = getAudioContext();
+    const analyser = ctx.createAnalyser();
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    let audioSource: AudioNode;
+    const audioElement = audioElmRef.current;
+
+    if (!audioElement) return;
+
+    // Handle mobile audio context suspension
+    const handlePlay = async () => {
+      try {
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+        
+        if (audioElement instanceof HTMLAudioElement) {
+          await audioElement.play();
+        }
+        
+        // Setup audio source and analyzer
+        audioSource = ctx.createMediaElementSource(audioElement);
+        audioSource.connect(analyser);
+        audioSource.connect(ctx.destination);
+        
+        draw(analyser, dataArray);
+      } catch (error) {
+        console.error("Audio playback failed:", error);
+      }
+    };
 
     const handleEnded = () => {
       toggleBoolean("getResponse", false);
-      audioSource.disconnect();
+      if (audioSource) {
+        audioSource.disconnect();
+      }
       setRefreshSTTCount();
-      console.log("Audio has stopped playing")
-    }
-
-    audioElmRef.current?.addEventListener("ended", handleEnded);
-    
-    return () => {
-      audioElmRef.current?.removeEventListener("ended", handleEnded)
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioUrl]);
 
-  const draw = (): void => {
+    audioElement.addEventListener("ended", handleEnded);
+    handlePlay();
+
+    return () => {
+      audioElement.removeEventListener("ended", handleEnded);
+      // if (audioSource) {
+      //   audioSource.disconnect();
+      // }
+    };
+  }, [audioUrl, hasUserInteracted]);
+
+  const draw = (analyser: AnalyserNode, dataArray: Uint8Array): void => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -76,7 +104,7 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
     const width = canvas.width;
     const height = canvas.height;
 
-    requestAnimationFrame(draw);
+    requestAnimationFrame(() => draw(analyser, dataArray));
     analyser.getByteFrequencyData(dataArray);
 
     if (!canvasContext) return;
@@ -100,11 +128,19 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
   };
 
   return (
-      <>
-        <canvas ref={canvasRef} width={window.innerWidth}></canvas>
-        {audioUrl && <audio src={audioUrl ?? ""} ref={audioElmRef} className="w-0" autoPlay={hasUserInteracted} />}
-      </>
-    )
+    <>
+      <canvas ref={canvasRef} width={window.innerWidth}></canvas>
+      {audioUrl && (
+        <audio 
+          src={audioUrl} 
+          ref={audioElmRef} 
+          className="w-0" 
+          // Only add autoplay if user has interacted
+          autoPlay={hasUserInteracted}
+        />
+      )}
+    </>
+  );
 };
 
 export default AgentVisualizer;

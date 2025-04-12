@@ -7,10 +7,7 @@ const TapToSpeak: React.FC = () => {
     return (
         <motion.button 
             className="ease-in-out duration-500 hover:cursor-pointer text-[120px] absolute"  
-            onClick={() => {
-                toggleBoolean("isListening", true)
-                toggleBoolean("hasUserInteracted", true)
-            }}
+            onClick={() => toggleBoolean("isListening", true)}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}

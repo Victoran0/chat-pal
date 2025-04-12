@@ -24,98 +24,50 @@ interface VisualizerProps {
 }
 
 const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
-  const {toggleBoolean, setRefreshSTTCount, hasUserInteracted} = useChatPalStore((state) => state);
+  const {toggleBoolean, setRefreshSTTCount} = useChatPalStore((state) => state);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioElmRef = useRef<HTMLAudioElement | null>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(context || null);
-  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array | null>(null);
-  const animationFrameIdRef = useRef<number>(0);
+  if (!context) {
+    context = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  const analyser = context.createAnalyser();
+  const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-  // Initialize audio context and analyzer
   useEffect(() => {
-    if (!hasUserInteracted || audioContext) return;
+    // console.log("The context is: ", context);
+    if (!audioUrl) return;
+    let audioSource: AudioNode;
 
-    const initAudio = async () => {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const analyserNode = ctx.createAnalyser();
-        
-        setAudioContext(ctx);
-        setAnalyser(analyserNode);
-        dataArrayRef.current = new Uint8Array(analyserNode.frequencyBinCount);
-        
-        // Some browsers need this to be called after user interaction
-        if (ctx.state === 'suspended') {
-          await ctx.resume();
-        }
-      } catch (error) {
-        console.error("Audio initialization failed:", error);
-      }
-    };
-
-    initAudio();
-
-    return () => {
-      if (animationFrameIdRef.current) {
-        cancelAnimationFrame(animationFrameIdRef.current);
-      }
-    };
-  }, [hasUserInteracted]);
-
-  // Handle audio playback when URL changes
-  useEffect(() => {
-    if (!audioUrl || !hasUserInteracted || !audioRef.current || !audioContext || !analyser) return;
-
-    const audioElement = audioRef.current;
-    let audioSource: MediaElementAudioSourceNode;
-
-    const playAudio = async () => {
-      try {
-        // Connect audio nodes
-        audioSource = audioContext.createMediaElementSource(audioElement);
-        audioSource.connect(analyser);
-        analyser.connect(audioContext.destination);
-
-        // Start visualization
-        draw();
-
-        // Play audio
-        await audioElement.play();
-        console.log("Audio playback started");
-      } catch (error) {
-        console.error("Audio playback failed:", error);
-      }
-    };
+    if (audioElmRef.current instanceof MediaStream) {
+      audioElmRef.current.volume = 0.5;
+      audioSource = context!.createMediaStreamSource(audioElmRef.current);
+    } else {
+      audioElmRef!.current!.volume = 0.5;
+      audioSource = context!.createMediaElementSource(audioElmRef.current as HTMLMediaElement);
+      audioSource.connect(context!.destination);
+    }
+    
+    audioSource.connect(analyser);
+    draw();
 
     const handleEnded = () => {
       toggleBoolean("getResponse", false);
+      audioSource.disconnect();
       setRefreshSTTCount();
-      if (audioSource) {
-        audioSource.disconnect();
-      }
-    };
+      console.log("Audio has stopped playing")
+    }
 
-    audioElement.addEventListener('ended', handleEnded);
-    playAudio();
-
+    audioElmRef.current?.addEventListener("ended", handleEnded);
+    
     return () => {
-      audioElement.removeEventListener('ended', handleEnded);
-      if (audioSource) {
-        audioSource.disconnect();
-      }
-      if (animationFrameIdRef.current) {
-        cancelAnimationFrame(animationFrameIdRef.current);
-      }
+      audioElmRef.current?.removeEventListener("ended", handleEnded)
     };
-  }, [audioUrl, hasUserInteracted, audioContext, analyser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioUrl]);
 
-  const draw = () => {
+  const draw = (): void => {
     const canvas = canvasRef.current;
-    if (!canvas || !analyser || !dataArrayRef.current) return;
-
-    animationFrameIdRef.current = requestAnimationFrame(draw);
+    if (!canvas) return;
 
     canvas.style.width = "100%";
     canvas.style.height = "100%";
@@ -126,9 +78,11 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
     const width = canvas.width;
     const height = canvas.height;
 
+    requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArray);
+
     if (!canvasContext) return;
 
-    analyser.getByteFrequencyData(dataArrayRef.current);
     canvasContext.clearRect(0, 0, width, height);
 
     const barWidth = 10;
@@ -136,8 +90,7 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
     const startColor = [19, 239, 147];
     const endColor = [20, 154, 251];
 
-    for (let i = 0; i < analyser.frequencyBinCount; i++) {
-      const value = dataArrayRef.current[i];
+    for (const value of dataArray) {
       const barHeight = (value / 255) * height * 2;
       const interpolationFactor = value / 255;
       const color = interpolateColor(startColor, endColor, interpolationFactor);
@@ -149,20 +102,20 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
   };
 
   return (
-    <>
-      <canvas className="relative" ref={canvasRef} width={window.innerWidth} height={100} />
-      {audioUrl && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          controls
-          playsInline // Important for iOS
-          preload="auto"
-          className="absolute"
-        />
-      )}
-    </>
-  );
+      <>
+        <canvas className="relative" ref={canvasRef} width={window.innerWidth}></canvas>
+        {audioUrl && (
+          <audio 
+            src={audioUrl ?? ""} 
+            ref={audioElmRef} 
+            controls
+            autoPlay
+            preload="auto"
+            className="absolute" 
+          />
+        )}
+      </>
+    )
 };
 
 export default AgentVisualizer;

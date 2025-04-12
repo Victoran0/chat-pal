@@ -27,46 +27,63 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
   const {toggleBoolean, setRefreshSTTCount, hasUserInteracted} = useChatPalStore((state) => state);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioElmRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [audioContext, setAudioContext] = useState<AudioContext | null>(context || null);
-  // Initialize or get audio context
-  const getAudioContext = () => {
-    if (!audioContext) {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      setAudioContext(ctx);
-      return ctx;
-    }
-    return audioContext;
-  };
+  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
+  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const animationFrameIdRef = useRef<number>(0);
 
+  // Initialize audio context and analyzer
   useEffect(() => {
-    if (!audioUrl || !hasUserInteracted) return;
-    
-    const ctx = getAudioContext();
-    const analyser = ctx.createAnalyser();
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    if (!hasUserInteracted || audioContext) return;
 
-    let audioSource: AudioNode;
-    const audioElement = audioElmRef.current;
-
-    if (!audioElement) return;
-
-    // Handle mobile audio context suspension
-    const handlePlay = async () => {
+    const initAudio = async () => {
       try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const analyserNode = ctx.createAnalyser();
+        
+        setAudioContext(ctx);
+        setAnalyser(analyserNode);
+        dataArrayRef.current = new Uint8Array(analyserNode.frequencyBinCount);
+        
+        // Some browsers need this to be called after user interaction
         if (ctx.state === 'suspended') {
           await ctx.resume();
         }
-        
-        if (audioElement instanceof HTMLAudioElement) {
-          await audioElement.play();
-        }
-        
-        // Setup audio source and analyzer
-        audioSource = ctx.createMediaElementSource(audioElement);
+      } catch (error) {
+        console.error("Audio initialization failed:", error);
+      }
+    };
+
+    initAudio();
+
+    return () => {
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+      }
+    };
+  }, [hasUserInteracted]);
+
+  // Handle audio playback when URL changes
+  useEffect(() => {
+    if (!audioUrl || !hasUserInteracted || !audioRef.current || !audioContext || !analyser) return;
+
+    const audioElement = audioRef.current;
+    let audioSource: MediaElementAudioSourceNode;
+
+    const playAudio = async () => {
+      try {
+        // Connect audio nodes
+        audioSource = audioContext.createMediaElementSource(audioElement);
         audioSource.connect(analyser);
-        audioSource.connect(ctx.destination);
-        
-        draw(analyser, dataArray);
+        analyser.connect(audioContext.destination);
+
+        // Start visualization
+        draw();
+
+        // Play audio
+        await audioElement.play();
+        console.log("Audio playback started");
       } catch (error) {
         console.error("Audio playback failed:", error);
       }
@@ -74,26 +91,31 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
 
     const handleEnded = () => {
       toggleBoolean("getResponse", false);
+      setRefreshSTTCount();
       if (audioSource) {
         audioSource.disconnect();
       }
-      setRefreshSTTCount();
     };
 
-    audioElement.addEventListener("ended", handleEnded);
-    handlePlay();
+    audioElement.addEventListener('ended', handleEnded);
+    playAudio();
 
     return () => {
-      audioElement.removeEventListener("ended", handleEnded);
-      // if (audioSource) {
-      //   audioSource.disconnect();
-      // }
+      audioElement.removeEventListener('ended', handleEnded);
+      if (audioSource) {
+        audioSource.disconnect();
+      }
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+      }
     };
-  }, [audioUrl, hasUserInteracted]);
+  }, [audioUrl, hasUserInteracted, audioContext, analyser]);
 
-  const draw = (analyser: AnalyserNode, dataArray: Uint8Array): void => {
+  const draw = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !analyser || !dataArrayRef.current) return;
+
+    animationFrameIdRef.current = requestAnimationFrame(draw);
 
     canvas.style.width = "100%";
     canvas.style.height = "100%";
@@ -104,11 +126,9 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
     const width = canvas.width;
     const height = canvas.height;
 
-    requestAnimationFrame(() => draw(analyser, dataArray));
-    analyser.getByteFrequencyData(dataArray);
-
     if (!canvasContext) return;
 
+    analyser.getByteFrequencyData(dataArrayRef.current);
     canvasContext.clearRect(0, 0, width, height);
 
     const barWidth = 10;
@@ -116,7 +136,8 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
     const startColor = [19, 239, 147];
     const endColor = [20, 154, 251];
 
-    for (const value of dataArray) {
+    for (let i = 0; i < analyser.frequencyBinCount; i++) {
+      const value = dataArrayRef.current[i];
       const barHeight = (value / 255) * height * 2;
       const interpolationFactor = value / 255;
       const color = interpolateColor(startColor, endColor, interpolationFactor);
@@ -129,14 +150,15 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
 
   return (
     <>
-      <canvas ref={canvasRef} width={window.innerWidth}></canvas>
+      <canvas ref={canvasRef} width={window.innerWidth} height={100} />
       {audioUrl && (
-        <audio 
-          src={audioUrl} 
-          ref={audioElmRef} 
-          className="w-0" 
-          // Only add autoplay if user has interacted
-          autoPlay={hasUserInteracted}
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          controls={false}
+          playsInline // Important for iOS
+          preload="auto"
+          style={{ display: 'none' }}
         />
       )}
     </>

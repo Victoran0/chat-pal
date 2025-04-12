@@ -110,7 +110,6 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
             ref={audioElmRef} 
             controls
             autoPlay
-            preload="auto"
             className="absolute" 
           />
         )}

@@ -150,15 +150,15 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
 
   return (
     <>
-      <canvas ref={canvasRef} width={window.innerWidth} height={100} />
+      <canvas className="relative" ref={canvasRef} width={window.innerWidth} height={100} />
       {audioUrl && (
         <audio
           ref={audioRef}
           src={audioUrl}
-          controls={false}
+          controls
           playsInline // Important for iOS
           preload="auto"
-          style={{ display: 'none' }}
+          className="absolute"
         />
       )}
     </>

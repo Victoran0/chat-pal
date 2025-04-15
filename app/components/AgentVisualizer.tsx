@@ -36,6 +36,7 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
   useEffect(() => {
     // console.log("The context is: ", context);
     if (!audioUrl) return;
+    // if the device is not an android, then run the below codes
     // let audioSource: AudioNode;
 
     // if (audioElmRef.current instanceof MediaStream) {
@@ -109,7 +110,7 @@ const AgentVisualizer: React.FC<VisualizerProps> = ({ audioUrl, context }) => {
             src={audioUrl ?? ""} 
             ref={audioElmRef} 
             controls
-            autoPlay
+            
             className="absolute" 
           />
         )}

@@ -82,7 +82,11 @@ const CustomAudioPlayer: React.FC<CustomAudioPlayerProps> = ({ audioSrc, classNa
             audioRef.current.pause();
         } else {
             // Attempt to play, handle potential errors
-            audioRef.current.play().catch(error => {
+            audioRef.current.play()
+            .then(() => {
+                console.log('Audio playing');
+            })
+            .catch(error => {
             console.error("Error playing audio:", error);
             // Optionally show an error message to the user
             setIsPlaying(false); // Ensure state reflects that playback failed
@@ -117,7 +121,7 @@ const CustomAudioPlayer: React.FC<CustomAudioPlayerProps> = ({ audioSrc, classNa
     return (
         <div className={`text-white p-6 rounded-lg shadow-lg w-full max-w-md mx-auto flex flex-col items-center space-y-4 ${className}`}>
         {/* Hidden Audio Element */}
-        <audio ref={audioRef} src={audioSrc} preload="metadata"></audio>
+        <audio ref={audioRef} src={audioSrc} preload="auto"></audio>
 
         {/* Play/Pause Button */}
         <button

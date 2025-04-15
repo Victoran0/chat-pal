@@ -6,6 +6,7 @@ import LoadingThreeDotsJumping from './Loading';
 import TapToSpeak from './TapToSpeak';
 import SpeechToText from './SpeechToText';
 import { useChatPalStore } from '@/providers/chatpal-store-provider';
+import CustomAudioPlayer from './CustomAudioPlayer';
 
 const App = () => {
     const [context, setContext] = useState<AudioContext>();
@@ -22,8 +23,12 @@ const App = () => {
                 />
             )}
             {context && !isLoading && (
-                <AgentVisualizer 
-                    audioUrl={audioUrl} 
+                // <AgentVisualizer 
+                //     audioUrl={audioUrl} 
+                //     key={`agent-visualizer-${refreshSTTCount}`}
+                // />
+                <CustomAudioPlayer 
+                    audioSrc={audioUrl}
                     key={`agent-visualizer-${refreshSTTCount}`}
                 />
             )}

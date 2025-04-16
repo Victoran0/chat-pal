@@ -171,7 +171,8 @@ const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => 
         const response_blob = await response.blob()
 
         toggleBoolean("isLoading", false);
-        setAudioUrl(URL.createObjectURL(response_blob));
+        const blobUrl = URL.createObjectURL(response_blob);
+        setAudioUrl(blobUrl);
       
       } catch (error: any) {
         console.error("The get response error: ", error)

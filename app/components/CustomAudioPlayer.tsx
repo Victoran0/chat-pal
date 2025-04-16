@@ -71,30 +71,54 @@ const CustomAudioPlayer: React.FC<CustomAudioPlayerProps> = ({ audioSrc, classNa
             audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
             audio.removeEventListener('timeupdate', handleTimeUpdate);
             audio.removeEventListener('ended', handleAudioEnd);
+            if (audioSrc?.startsWith("blob:")) {
+                URL.revokeObjectURL(audioSrc);
+                console.log("Audio src cleaned")
+            }
         };
         }
     }, [audioSrc]); // Rerun effect if audioSrc changes
 
     // Function to toggle play/pause state
     const togglePlayPause = () => {
-        if (audioRef.current) {
+        const audio = audioRef.current;
+        if (!audio) return;
+
         if (isPlaying) {
-            audioRef.current.pause();
+            audio.pause();
+            setIsPlaying(false);
         } else {
-            // Attempt to play, handle potential errors
-            audioRef.current.play()
+            audio.play()
             .then(() => {
-                console.log('Audio playing');
+                setIsPlaying(true);
             })
             .catch(error => {
-            console.error("Error playing audio:", error);
-            // Optionally show an error message to the user
-            setIsPlaying(false); // Ensure state reflects that playback failed
+                console.error("Playback error:", error);
+
+                // Attempt to resume AudioContext
+                try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const context = new AudioContext();
+                if (context.state === "suspended") {
+                    context.resume().then(() => {
+                    audio.play()
+                        .then(() => {
+                        console.log("Resumed and playing");
+                        setIsPlaying(true);
+                        })
+                        .catch((err) => {
+                        console.error("Still cannot play:", err);
+                        setIsPlaying(false);
+                        });
+                    });
+                }
+                } catch (ctxErr) {
+                console.error("AudioContext resume failed", ctxErr);
+                }
             });
         }
-        setIsPlaying(!isPlaying); // Toggle the playing state
-        }
     };
+
 
     // Function to handle seeking using the progress bar
     const handleSeek = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,7 +145,12 @@ const CustomAudioPlayer: React.FC<CustomAudioPlayerProps> = ({ audioSrc, classNa
     return (
         <div className={`text-white p-6 rounded-lg shadow-lg w-full max-w-md mx-auto flex flex-col items-center space-y-4 ${className}`}>
         {/* Hidden Audio Element */}
-        <audio ref={audioRef} src={audioSrc} preload="auto"></audio>
+        <audio
+            ref={audioRef}
+            src={audioSrc}
+            preload="auto"
+            crossOrigin="anonymous" // optional, but helps in some blob contexts
+        />
 
         {/* Play/Pause Button */}
         <button
@@ -155,17 +184,4 @@ const CustomAudioPlayer: React.FC<CustomAudioPlayerProps> = ({ audioSrc, classNa
     );
 };
 
-// Example Usage (replace with your actual audio file URL)
-// You would typically import and use this component in your Next.js pages/components like this:
-// import CustomAudioPlayer from './CustomAudioPlayer'; // Adjust path as needed
-//
-// function MyPage() {
-//   return (
-//     <div>
-//       <h1>My Awesome Audio</h1>
-//       <CustomAudioPlayer audioSrc="/path/to/your/audio.mp3" />
-//     </div>
-//   );
-// }
-
-export default CustomAudioPlayer; // Export the component for use
+export default CustomAudioPlayer; 

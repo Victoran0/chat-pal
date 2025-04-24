@@ -20,12 +20,9 @@ const Visualizer = ({ microphone }: { microphone: MediaRecorder }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const analyser = audioContext.createAnalyser();
-  const dataArray = new Uint8Array(analyser.frequencyBinCount);
-  const {visualizeHuman, isListening} = useChatPalStore((state) => state);
-  
+  const dataArray = new Uint8Array(analyser.frequencyBinCount);  
 
   useEffect(() => {
-    console.log("I was rendered")
     const source = audioContext.createMediaStreamSource(microphone.stream);
     source.connect(analyser);
 

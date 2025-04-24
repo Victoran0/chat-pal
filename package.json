@@ -16,6 +16,7 @@
     "@langchain/groq": "^0.2.1",
     "@langchain/langgraph": "^0.2.63",
     "@radix-ui/react-toast": "^1.2.6",
+    "@types/dom-speech-recognition": "^0.0.6",
     "axios": "^1.8.3",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",

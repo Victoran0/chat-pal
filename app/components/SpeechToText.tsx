@@ -15,6 +15,8 @@ import Visualizer from "./Visualizer";
 import { useToast } from "@/hooks/use-toast";
 import { useChatPalStore } from "@/providers/chatpal-store-provider";
 import { list } from "postcss";
+import TextToSpeech from "./TextToSpeech";
+import Connecting from "./Connecting";
 
 type Props = {
   callback: React.Dispatch<React.SetStateAction<any>>;
@@ -29,7 +31,8 @@ const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => 
   const keepAliveInterval = useRef<any>();
   const { toast } = useToast();
   const [caption, setCaption] = useState<string>();
-  const {toggleBoolean, getResponse, setRefreshSTTCount} = useChatPalStore((state) => state,)
+  const {toggleBoolean, getResponse, setRefreshSTTCount, setChatPalResponse, isConnecting} = useChatPalStore((state) => state,)
+  const {textToSpeech} = TextToSpeech();
 
   useEffect(() => {
     // The same value that renders the component
@@ -39,12 +42,15 @@ const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => 
 
   useEffect(() => {
     if (microphoneState === MicrophoneState.Ready) {
+      toggleBoolean("isConnecting", true);
       connectToDeepgram({
         model: "nova-3",
         interim_results: true,
         smart_format: true,
         filler_words: true,
         utterance_end_ms: 3000,
+      }).then(() => {
+        toggleBoolean("isConnecting", false);
       })
     }
     
@@ -127,7 +133,7 @@ const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => 
 
   const sendText = useCallback(
     async () => {
-      callback(new (window.AudioContext || window.webkitAudioContext)());
+      // callback(new (window.AudioContext || window.webkitAudioContext)());
       
       if (!caption || caption === "") {
         setRefreshSTTCount()
@@ -168,12 +174,15 @@ const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => 
           })
         }
 
-        const response_blob = await response.blob()
+        // const response_blob = await response.blob()
+        const response_text = await response.json();
+        console.log("The response text: ", response_text)
 
         toggleBoolean("isLoading", false);
-        const blobUrl = URL.createObjectURL(response_blob);
-        setAudioUrl(blobUrl);
-      
+        // const blobUrl = URL.createObjectURL(response_blob);
+        // setAudioUrl(blobUrl);
+        setChatPalResponse(response_text);
+        textToSpeech(response_text);
       } catch (error: any) {
         console.error("The get response error: ", error)
         toast({
@@ -193,7 +202,25 @@ const SpeechToText: ({}: Props) => JSX.Element = ({ callback, setAudioUrl }) => 
         sendText();
       }
     }, [ getResponse ]);
+  
+  useEffect(() => {
+      if (isConnecting) {
+          toast({
+              variant: "default",
+              title: "Connecting...", 
+              description: "Please wait while we connect you to Chat Pal.",
+          });
+      } else {
+          toast({
+              variant: "default",
+              title: "Connected!", 
+              description: "You are now connected to Chat Pal.",
+          });
+      }
+  }, [isConnecting])
 
+
+  if (isConnecting) return <Connecting />
 
   return (
     <>

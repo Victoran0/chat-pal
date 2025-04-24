@@ -6,11 +6,14 @@ export type ChatPalState = {
   isLoading: boolean;
   visualizeHuman: boolean;
   refreshSTTCount: number;
+  chatPalResponse: string;
+  isConnecting: boolean;
 }
 
 export type ChatPalActions = {
   toggleBoolean: (key: keyof ChatPalState, val?: boolean) => void;
   setRefreshSTTCount: () => void;
+  setChatPalResponse: (response: string) => void;
 }
 
 export type ChatPalStore = ChatPalState & ChatPalActions
@@ -22,7 +25,9 @@ export const initChatPalStore = (): ChatPalState => {
     isLoading: false,
     visualizeHuman: false,
     refreshSTTCount: 0,
-   }
+    chatPalResponse: "",
+    isConnecting: false,
+  }
 }
 
 export const defaultInitState: ChatPalState = {
@@ -31,6 +36,8 @@ export const defaultInitState: ChatPalState = {
   isLoading: false,
   visualizeHuman: false,
   refreshSTTCount: 0,
+  chatPalResponse: "",
+  isConnecting: false,
 }
 
 export const createChatPalStore = (
@@ -42,5 +49,6 @@ export const createChatPalStore = (
       set((state) => ({ [key]: val !== undefined ? val : !state[key] }))
     },
     setRefreshSTTCount: () => set((state) => ({ refreshSTTCount: state.refreshSTTCount + 1})),
+    setChatPalResponse: (response: string) => set(() => ({ chatPalResponse: response })),
   }))
 }

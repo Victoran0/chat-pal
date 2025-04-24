@@ -1,36 +1,28 @@
 "use client"
 import { AnimatePresence } from 'motion/react';
 import React, { useState } from 'react'
-import AgentVisualizer from './AgentVisualizer';
 import LoadingThreeDotsJumping from './Loading';
 import TapToSpeak from './TapToSpeak';
 import SpeechToText from './SpeechToText';
 import { useChatPalStore } from '@/providers/chatpal-store-provider';
-import CustomAudioPlayer from './CustomAudioPlayer';
+import RippleLoader from './RippleLoader';
 
 const App = () => {
     const [context, setContext] = useState<AudioContext>();
     const [audioUrl, setAudioUrl] = useState<string>("");
-    const { isListening, getResponse, isLoading, refreshSTTCount } = useChatPalStore((state) => state,)
+    const { isListening, getResponse, isLoading, refreshSTTCount, chatPalResponse, isConnecting } = useChatPalStore((state) => state,)
 
     return (
         <>
-            {isListening && (
+            {isListening &&  (
                 <SpeechToText 
                     callback={(ctx: AudioContext) => {setContext(ctx);}} 
                     setAudioUrl={setAudioUrl}
                     key={`speech-to-text-${refreshSTTCount}`}
                 />
             )}
-            {context && !isLoading && (
-                // <AgentVisualizer 
-                //     audioUrl={audioUrl} 
-                //     key={`agent-visualizer-${refreshSTTCount}`}
-                // />
-                <CustomAudioPlayer 
-                    audioSrc={audioUrl}
-                    key={`agent-visualizer-${refreshSTTCount}`}
-                />
+            {chatPalResponse !== "" && !isLoading && (
+                <RippleLoader />
             )}
             <AnimatePresence>
                 {!isListening && !getResponse && (

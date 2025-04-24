@@ -8,6 +8,7 @@ export type ChatPalState = {
   refreshSTTCount: number;
   chatPalResponse: string;
   isConnecting: boolean;
+  isSpeaking: boolean;
 }
 
 export type ChatPalActions = {
@@ -27,6 +28,7 @@ export const initChatPalStore = (): ChatPalState => {
     refreshSTTCount: 0,
     chatPalResponse: "",
     isConnecting: false,
+    isSpeaking: false,
   }
 }
 
@@ -38,6 +40,7 @@ export const defaultInitState: ChatPalState = {
   refreshSTTCount: 0,
   chatPalResponse: "",
   isConnecting: false,
+  isSpeaking: false,
 }
 
 export const createChatPalStore = (

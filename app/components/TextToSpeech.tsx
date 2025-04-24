@@ -8,18 +8,18 @@ const TextToSpeech = () => {
     const {setRefreshSTTCount, toggleBoolean, setChatPalResponse} = useChatPalStore((state) => state,);
     const {toast} = useToast();
 
-    useEffect(() => {
-        const handlePageHide = () => {
-            stopSpeech();
-        };
+    // useEffect(() => {
+    //     const handlePageHide = () => {
+    //         stopSpeech();
+    //     };
 
-        window.addEventListener("pagehide", handlePageHide);
+    //     window.addEventListener("pagehide", handlePageHide);
 
-        return () => {
-            window.removeEventListener("pagehide", handlePageHide);
-            stopSpeech();
-        };
-    }, []);
+    //     return () => {
+    //         window.removeEventListener("pagehide", handlePageHide);
+    //         stopSpeech();
+    //     };
+    // }, []);
 
 
     function textToSpeech(chatPalResponse: string) {
@@ -65,7 +65,7 @@ const TextToSpeech = () => {
             utterThis.onstart = () => {
                 toast({
                     variant: 'default',
-                    title: `Listen Up!`,
+                    title: `Listen!`,
                     description: `Chat Pal is speaking...`,
                 })
                 // setSpeakingIndex(index)

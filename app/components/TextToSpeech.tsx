@@ -3,23 +3,36 @@ import React, { useEffect } from 'react'
 import { useChatPalStore } from "@/providers/chatpal-store-provider";
 import { useToast } from '@/hooks/use-toast';
 
-const TextToSpeech = () => {
+const UseTextToSpeech = () => {
     const [voices, setVoices] = React.useState<SpeechSynthesisVoice[]>([]);
     const {setRefreshSTTCount, toggleBoolean, setChatPalResponse} = useChatPalStore((state) => state,);
     const {toast} = useToast();
 
-    // useEffect(() => {
-    //     const handlePageHide = () => {
-    //         stopSpeech();
-    //     };
+    const loadVoices = (synth: SpeechSynthesis) => {
+        setVoices(synth.getVoices().sort((a, b) => a.name.localeCompare(b.name)));
+        console.log("Available voices: ", synth.getVoices());
+    };
 
-    //     window.addEventListener("pagehide", handlePageHide);
+    useEffect(() => {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+        const synth = window.speechSynthesis;
+        
+        if (voices.length === 0) {
+            // Some browsers load voices asynchronously
+            synth.onvoiceschanged = () => loadVoices(synth);
+        }
+        
+        const handlePageHide = () => {
+            stopSpeech();
+        };
 
-    //     return () => {
-    //         window.removeEventListener("pagehide", handlePageHide);
-    //         stopSpeech();
-    //     };
-    // }, []);
+        window.addEventListener("pagehide", handlePageHide);
+
+        return () => {
+            window.removeEventListener("pagehide", handlePageHide);
+            stopSpeech();
+        };
+    }, []);
 
 
     function textToSpeech(chatPalResponse: string) {
@@ -34,7 +47,6 @@ const TextToSpeech = () => {
                 title: `Uh oh!`,
                 description: `Currently speaking. Cancelling...`,
             })
-            // setSpeakingIndex(-1)
             synth.cancel();
             return; 
         }
@@ -46,7 +58,7 @@ const TextToSpeech = () => {
             synth.getVoices().find((voice) => voice.name === "Microsoft Aria Online (Natural) - English (United States)") ||
             voices.find((voice) => voice.default === true) ||
             voices[0];
-            console.log("Zira: ", synth.getVoices().find((voice) => voice.voiceURI === "Microsoft Zira - English (United States)"))
+            console.log("Aria: ", synth.getVoices().find((voice) => voice.voiceURI === "Microsoft Aria Online (Natural) - English (United States)"))
 
             if (selectedVoice) {
                 utterThis.voice = selectedVoice;
@@ -56,19 +68,17 @@ const TextToSpeech = () => {
             utterThis.rate = 1;
 
             utterThis.onend = () => {
-                // setSpeakingIndex(-1)
                 toggleBoolean("getResponse", false);
                 setRefreshSTTCount();
                 setChatPalResponse("");
                 console.log('Speech finished');
+                toggleBoolean("isSpeaking", false)  
             };
             utterThis.onstart = () => {
                 toast({
                     variant: 'default',
-                    title: `Listen!`,
-                    description: `Chat Pal is speaking...`,
+                    title: `Chat Pal is speaking...`,
                 })
-                // setSpeakingIndex(index)
             }
             utterThis.onerror = (e: any) => {
                 console.log('Speech error', e)
@@ -79,20 +89,15 @@ const TextToSpeech = () => {
                         description: `Something went wrong, try again later...`,
                     })
                 }
+                toggleBoolean("isSpeaking", false)  
             };
 
             synth.speak(utterThis);
         };
 
-        // console.log("Available voices: ", synth.getVoices())
-        const loadVoices = () => {
-            setVoices(synth.getVoices().sort((a, b) => a.name.localeCompare(b.name)));
-            console.log("Available voices: ", voices);
-        };
-
         if (voices.length === 0) {
             // Some browsers load voices asynchronously
-            synth.onvoiceschanged = loadVoices;
+            synth.onvoiceschanged = () => loadVoices(synth);
         }
 
         speakNow();
@@ -102,7 +107,6 @@ const TextToSpeech = () => {
         if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
         const synth = window.speechSynthesis;
         if (synth.speaking) {
-            // setSpeakingIndex(-1)
             synth.cancel();
         }
     }
@@ -113,4 +117,4 @@ const TextToSpeech = () => {
     }
 }
 
-export default TextToSpeech
+export default UseTextToSpeech

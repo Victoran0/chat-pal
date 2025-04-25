@@ -28,14 +28,24 @@ const model = new ChatGroq({
     model: "meta-llama/llama-4-scout-17b-16e-instruct"
 }).bindTools(tools)
 
-const shouldContinue = ({messages}: typeof MessagesAnnotation.State) => {
+const shouldContinue = ({ messages }: typeof MessagesAnnotation.State) => {
     const lastMessage = messages[messages.length - 1] as AIMessage;
     console.log("The last message is: ", lastMessage);
+    // Check structured tool calls
     if (lastMessage.tool_calls?.length) {
+        console.log("Actual tool call detected")
         return "tools";
     }
+
+    // Fallback: check if content contains a tool function string
+    if (typeof lastMessage.content === "string" && lastMessage.content.includes("<function=")) {
+        console.log("manual tool call detected")
+        return "manual_tool_handler";
+    }
+
     return "__end__";
 }
+
 
 const callModel = async (state: typeof MessagesAnnotation.State) => {
     // Combine the system prompt with the chat history (state.messages)
@@ -44,15 +54,54 @@ const callModel = async (state: typeof MessagesAnnotation.State) => {
     });
 
     const response = await model.invoke(formattedMessages);
-    console.log("The Agent Response is: ", response);
     return {messages: [response]}
 }
 
+const manualToolHandler = async (state: typeof MessagesAnnotation.State) => {
+    const lastMessage = state.messages[state.messages.length - 1] as AIMessage;
+    const content = lastMessage.content as string;
+
+    const match = content.match(/<function=(.*?)>(\{.*\})/);
+    console.log("The regex match is: ", match);
+    if (!match) return { messages: [] };
+
+    const [, functionName, rawInput] = match;
+    let toolInput;
+
+    try {
+        toolInput = JSON.parse(rawInput);
+    } catch (err) {
+        console.error("Failed to parse tool input:", err);
+        return { messages: [new AIMessage({ content: "Sorry, I couldn't process that request." })] };
+    }
+
+    const tool = tools.find(t => t.name === functionName);
+    if (!tool) {
+        return { messages: [new AIMessage({ content: `Tool "${functionName}" not found.` })] };
+    }
+
+    let result;
+    try {
+        result = await tool.invoke(toolInput);
+    } catch (err) {
+        console.error("Tool execution error:", err);
+        return { messages: [new AIMessage({ content: "There was an error running the tool." })] };
+    }
+
+    // Return the tool result as a message
+    const toolResponse = new AIMessage({ content: result });
+
+    return { messages: [toolResponse] };
+}
+
+
 const workflow = new StateGraph(MessagesAnnotation)
     .addNode("agent", callModel)
-    .addEdge("__start__", "agent")
     .addNode("tools", toolNode)
+    .addNode("manual_tool_handler", manualToolHandler)
+    .addEdge("__start__", "agent")
     .addEdge("tools", "agent")
+    .addEdge("manual_tool_handler", "agent")
     .addConditionalEdges("agent", shouldContinue)
 
 const memory = new MemorySaver();

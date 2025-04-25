@@ -1,6 +1,6 @@
 # Chat Pal
 
-The purpose of this demo is to showcase how you can build a NextJS + langchain + langgraph + Web Speech API SpeechSynthesis + Groq speech to speech AI Assistant using [Deepgram](https://deepgram.com/).
+The purpose of this demo is to showcase how you can build a NextJS + langchain + langgraph + Web Speech API SpeechSynthesis + Groq + Google Search speech to speech AI Assistant using [Deepgram](https://deepgram.com/).
 
 ## Demo features
 
@@ -10,7 +10,7 @@ Convert text to speech [Deepgram Streaming Text to Speech](https://developers.de
 ## What is Chat Pal?
 
 Chat Pal: Enjoy fluid, voice-driven conversations with an AI companion. Ask questions, explore topics, and receive spoken answers in real-time, creating a dynamic and engaging conversational experience.  
-This speech-to-speech AI assistant offers a user-friendly way to interact with AI enhanced with the Langgraph MemorySaver, enabling it to recall details from previous interaction. It is also binded with the DuckDuckGoSearch tool, allowing it to be able to access real-time information from the internet. In a nutshell, information and assistance is accessible through simple voice commands.
+This speech-to-speech AI assistant offers a user-friendly way to interact with AI enhanced with the Langgraph MemorySaver, enabling it to recall details from previous interaction. It is also binded with the Google Search tool, allowing it to be able to access real-time information from the internet. In a nutshell, information and assistance is accessible through simple voice commands.
 
 ## Quickstart
 

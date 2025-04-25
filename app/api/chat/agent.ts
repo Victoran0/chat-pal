@@ -30,6 +30,7 @@ const model = new ChatGroq({
 
 const shouldContinue = ({messages}: typeof MessagesAnnotation.State) => {
     const lastMessage = messages[messages.length - 1] as AIMessage;
+    console.log("The last message is: ", lastMessage);
     if (lastMessage.tool_calls?.length) {
         return "tools";
     }
@@ -43,6 +44,7 @@ const callModel = async (state: typeof MessagesAnnotation.State) => {
     });
 
     const response = await model.invoke(formattedMessages);
+    console.log("The Agent Response is: ", response);
     return {messages: [response]}
 }
 

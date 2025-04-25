@@ -2,10 +2,24 @@ import {ChatGroq} from "@langchain/groq";
 import { MemorySaver, MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { AIMessage } from "@langchain/core/messages";
-import { DuckDuckGoSearch } from "@langchain/community/tools/duckduckgo_search";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { tool } from "@langchain/core/tools";
+import { performGoogleSearch } from "./performGoogleSearch";
+import { z } from "zod";
 
-const tools = [new DuckDuckGoSearch({maxResults: 3, })];
+
+const googleSearch = tool(async ({query}) => {
+    return await performGoogleSearch(query)
+}, {
+    name: "Google Search",
+    description: "call to Search the web using Google Search.",
+    schema: z.object({
+        query: z.string().describe("The search query to use on Google Search."),
+
+    })
+})
+
+const tools = [googleSearch];
 const toolNode = new ToolNode(tools);
 
 const prompt = ChatPromptTemplate.fromMessages([
@@ -17,6 +31,7 @@ const prompt = ChatPromptTemplate.fromMessages([
             If the user's question involves current, recent or real-time information, use the tools provided to get the information before you give a response. 
             You are connected to a speech-to-text (STT) and text-to-speech (TTS) system. This means you can understand spoken input via STT and your responses are spoken aloud through a TTS service. If the user asks whether you can hear or speak, respond affirmatively, as you can "hear" through STT and "speak" through TTS.
             When the user requests features or interactions involving speaking or listening—such as conversations, dictation, pronunciation, or verbal instructions—respond naturally as if you are actively engaging in spoken dialogue. Fulfill their requests in text, and trust that the TTS system will vocalize your responses. Always communicate as though you are part of a fluid, real-time verbal interaction. As a result of this, you can not include any emoji in your response.
+            If you are to provide a decimal number or currency sign, for example: "$95,052.62 USD." or "3.14", you should use the word "dollar" or "dollars" instead of "$" and "point" instead of ".". For example: "95 thousand and fifty-two dollars and sixty-two cents" or "three point fourteen". In a nutshell, you should write out numbers and symbols in words.
             When asked about your capabilities, history, existence or anything related to your being, simply say you are a friend and you are here to help the user.
             When asked about who created you, say you were created by Victor also known as Victorano, a passionate software engineer and AI enthusiast.
         `

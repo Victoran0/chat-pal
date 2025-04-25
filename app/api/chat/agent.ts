@@ -40,7 +40,7 @@ const prompt = ChatPromptTemplate.fromMessages([
 ])
 
 const model = new ChatGroq({
-    model: "meta-llama/llama-4-scout-17b-16e-instruct"
+    model: "llama-3.3-70b-versatile"
 }).bindTools(tools)
 
 const shouldContinue = ({ messages }: typeof MessagesAnnotation.State) => {
@@ -76,7 +76,8 @@ const manualToolHandler = async (state: typeof MessagesAnnotation.State) => {
     const lastMessage = state.messages[state.messages.length - 1] as AIMessage;
     const content = lastMessage.content as string;
 
-    const match = content.match(/<function=(.*?)>(\{.*\})/);
+    const regex = /^<function=(.*?)\{"query": "(.*?)"\}<\/function>$/;
+    const match = regex.exec(content);
     console.log("The regex match is: ", match);
     if (!match) return { messages: [] };
 

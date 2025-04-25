@@ -85,7 +85,7 @@ const manualToolHandler = async (state: typeof MessagesAnnotation.State) => {
     let toolInput;
 
     try {
-        toolInput = JSON.parse(rawInput);
+        toolInput = rawInput;
     } catch (err) {
         console.error("Failed to parse tool input:", err);
         return { messages: [new AIMessage({ content: "Sorry, I couldn't process that request." })] };
@@ -98,7 +98,7 @@ const manualToolHandler = async (state: typeof MessagesAnnotation.State) => {
 
     let result;
     try {
-        result = await tool.invoke(toolInput);
+        result = await tool.invoke({query: toolInput});
     } catch (err) {
         console.error("Tool execution error:", err);
         return { messages: [new AIMessage({ content: "There was an error running the tool." })] };

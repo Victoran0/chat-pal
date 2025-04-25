@@ -1,6 +1,6 @@
 # Chat Pal
 
-The purpose of this demo is to showcase how you can build a NextJS + langchain + langgraph + Web Speech API SpeechSynthesis speech to speech AI Assistant using [Deepgram](https://deepgram.com/).
+The purpose of this demo is to showcase how you can build a NextJS + langchain + langgraph + Web Speech API SpeechSynthesis + Groq speech to speech AI Assistant using [Deepgram](https://deepgram.com/).
 
 ## Demo features
 
